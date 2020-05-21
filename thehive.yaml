@@ -1,0 +1,696 @@
+---
+openapi: "3.0.0"
+info:
+  version: "4.0.0-RC3"
+  title: "TheHive"
+tags:
+  - name: "Authentication"
+    description: "Authentication related APIs"
+paths:
+  /api/v1/login:
+    post:
+      tags:
+        - "Authentication"
+      summary: "Authenticate an user and get session cookie"
+      requestBody:
+        description: "Credentials"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        '200':
+          description: "Authentication succeeds"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputUser'
+        '401':
+          description: "Authentication fails"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+        '402':
+          description: "Multi-factor code is required"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+  /api/v1/query:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Query'
+      responses:
+        '200':
+          description: "result"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AnyOutputObject'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/AnyOutputObject'
+components:
+  schemas:
+    Entity:
+      type: object
+      required:
+        - _id
+        - _type
+        - _createdAt
+        - _createdBy
+      properties:
+        _id:
+          type: string
+        _type:
+          type: string
+        _createdBy:
+          type: string
+        _createdAt:
+          type: integer
+        _updatedBy:
+          type: string
+        _updatedAt:
+          type: integer
+    GenericError:
+      type: object
+      required:
+        - type
+        - message
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+        cause:
+          type: string
+    Credentials:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          description: "User login"
+          type: string
+        password:
+          description: "User password"
+          type: string
+        organisation:
+          description: "Organisation on which the user want to log on"
+          type: string
+        code:
+          description: "Authentication code, for multi-factor authentication"
+          type: integer
+    AnyOutputObject:
+      anyOf:
+        - $ref: '#/components/schemas/OutputUser'
+        - $ref: '#/components/schemas/OutputOrganisation'
+        - $ref: '#/components/schemas/OutputCaseTemplate'
+        - $ref: '#/components/schemas/OutputCase'
+        - $ref: '#/components/schemas/OutputObservable'
+        - $ref: '#/components/schemas/OutputTask'
+        - $ref: '#/components/schemas/OutputLog'
+        - $ref: '#/components/schemas/OutputAlert'
+    AnyProperties:
+      oneOf:
+        - $ref: '#/components/schemas/UserProperties'
+    OutputUser:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - login
+            - name
+            - hasKey
+            - hasPassword
+            - hasMFA
+            - locked
+            - profile
+          properties:
+            login:
+              type: string
+            name:
+              type: string
+            hasKey:
+              type: boolean
+            hasPassword:
+              type: boolean
+            hasMFA:
+              type: boolean
+            locked:
+              type: boolean
+            profile:
+              type: string
+            permissions:
+              type: array
+              items:
+                type: string
+            organisation:
+              type: string
+            avatar:
+              type: string
+            organisations:
+              type: array
+              items:
+                type: object
+                properties:
+                  organisation:
+                    type: string
+                  role:
+                    type: string
+    UserProperties:
+      type: string
+      enum:
+        - login
+        - name
+        - locked
+        - avatar
+    OutputOrganisation:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - name
+            - description
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+    OutputCustomFieldValue:
+      type: object
+      required:
+        - name
+        - description
+        - tpe
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tpe:
+          type: string
+        value:
+          type: string
+    OutputCaseTemplate:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - name
+            - displayName
+            - flag
+            - customFields
+          properties:
+            name:
+              type: string
+            displayName:
+              type: string
+            titlePrefix:
+              type: string
+            description:
+              type: string
+            severity:
+              type: integer
+            tags:
+              type: array
+              items:
+                type: string
+            flag:
+              type: boolean
+            tlp:
+              type: integer
+            pap:
+              type: integer
+            summary:
+              type: string
+            customFields:
+              type: array
+              items:
+                $ref: '#/components/schemas/OutputCustomFieldValue'
+    OutputCase:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - number
+            - title
+            - description
+            - severity
+            - startDate
+            - tags
+            - flag
+            - tlp
+            - pap
+            - status
+            - customFields
+          properties:
+            number:
+              type: integer
+            title:
+              type: string
+            description:
+              type: string
+            severity:
+              type: integer
+            startDate:
+              type: integer
+            endDate:
+              type: integer
+            tags:
+              type: array
+              items:
+                type: string
+            flag:
+              type: boolean
+            tlp:
+              type: integer
+            pap:
+              type: integer
+            status:
+              type: string
+            summary:
+              type: string
+            user:
+              type: string
+            customFields:
+              type: array
+              items:
+                $ref: '#/components/schemas/OutputCustomFieldValue'
+    OutputAttachment:
+      type: object
+      required:
+        - name
+        - hashes
+        - size
+        - contentType
+        - id
+      properties:
+        name:
+          type: string
+        hashes:
+          type: array
+          items:
+            type: string
+        size:
+          type: integer
+        contentType:
+          type: string
+        id:
+          type: string
+    OutputObservable:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - dataType
+            - tlp
+            - tags
+            - ioc
+            - sighted
+          properties:
+            dataType:
+              type: string
+            data:
+             type: string
+            startDate:
+              type: integer
+            attachment:
+              $ref: '#/components/schemas/OutputAttachment'
+            tlp:
+              type: integer
+            tags:
+              type: array
+              items:
+                type: string
+            ioc:
+              type: boolean
+            sighted:
+              type: boolean
+            message:
+              type: string
+            stats:
+              type: object
+    OutputTask:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - title
+            - group
+            - status
+            - flag
+            - order
+          properties:
+            title:
+              type: string
+            group:
+              type: string
+            description:
+              type: string
+            status:
+              type: string
+            flag:
+              type: boolean
+            startDate:
+              type: integer
+            endDate:
+              type: integer
+            order:
+              type: integer
+            dueDate:
+              type: integer
+    OutputLog:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - message
+            - startDate
+            - status
+            - owner
+          properties:
+            message:
+              type: string
+            startDate:
+              type: integer
+            attachment:
+              $ref: '#/components/schemas/OutputAttachment'
+            status:
+              type: string
+            owner:
+              type: string
+    OutputAlert:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - type
+            - source
+            - sourceRef
+            - title
+            - description
+            - severity
+            - date
+            - tags
+            - tlp
+            - pap
+            - read
+            - follow
+            - customFields
+          properties:
+            type:
+              type: string
+            source:
+              type: string
+            sourceRef:
+              type: string
+            externalLink:
+              type: string
+            title:
+              type: string
+            description:
+              type: string
+            severity:
+              type: integer
+            date:
+              type: integer
+            tags:
+              type: array
+              items:
+                type: string
+            tlp:
+              type: integer
+            pap:
+              type: integer
+            read:
+              type: boolean
+            follow:
+              type: boolean
+            customFields:
+              type: array
+              items:
+                $ref: '#/components/schemas/OutputCustomFieldValue'
+            caseTemplate:
+              type: string
+    Query:
+      oneOf:
+        - $ref: '#/components/schemas/NamedQuery'
+        - $ref: '#/components/schemas/GetQuery'
+        - $ref: '#/components/schemas/PageQuery'
+        - $ref: '#/components/schemas/FilterQuery'
+    NamedQuery:
+      type: object
+      required:
+        - _name
+      properties:
+        _name:
+          type: string
+          enum:
+            - page
+            - filter
+            - listOrganisation
+            - getOrganisation
+            - users
+            - visible
+            - caseTemplates
+            - listUsers
+            - getUser
+            - listCases
+            - getCase
+            - tasks
+            - observables
+            - assignableUsers
+            - listTask
+            - getTask
+            - logs
+            - listAlert
+            - getAlert
+          description: >
+            Query:
+             * `page` - [Any=PageQuery=>] Paginate elements
+             * `filter` - [Any=FilterQuery=>Any] Filter elements
+             * `listOrganisation` - [INIT=NamedQuery=>Organisation] List all visible organisations
+             * `getOrganisation` - [INIT=GetQuery=>Organisation] Select an organisation
+             * `users` - [Organisation=NamedQuery=>User] List users of the selected organisations
+             * `visible` - [Organisation=NamedQuery=>Organisation] List visible organisation from the selected organisations
+             * `caseTemplates` - [Organisation=NamedQuery=>CaseTemplate] List case templates in the selected organisations
+             * `listUser` - [INIT=NamedQuery=>User] List all visible users
+             * `getUser` - [INIT=GetQuery>User] Selon pourra pas corrigé tous les pb qui apparect an user
+             * `listCase` - [INIT=NamedQuery>Case] List all visible cases
+             * `getCase` - [INIT=GetQuery=>Case] Select a case
+             * `tasks` - [Case=NamedQuery=>Task] List tasks of the selected cases
+             * `observables` - [Case=NamedQuery=>Observable] List observables of the selected cases
+             * `assignableUsers` - [Case=NamedQuery=>User] List users who can be assigned to selected casess
+             * `organisations` - [Case=NamedQuery=>Organisation] List visible organisations of the selected cases
+             * `listTask` - [INIT=NamedQuery=>Task] List all visible tasks
+             * `getTask` - [INIT=GetQuery=>Task] Select a task
+             * `case` - [Task=NamedQuery=>Case] get case of the task
+             * `organisations` - [Task=NamedQuery=>Organisation] List visible organisations of the selected tasks
+             * `assignableUsers` - [Task=NamedQuery=>User] List users who can be assigned to selected tasks
+             * `logs` - [Task=NamedQuery=>Log] List logs of the selected tasks
+             * `listAlert` - [INIT=NamedQuery=>Alert] List all visible alerts
+             * `getAlert` - [INIT=GetQuery=>Alert] Select an alert
+             * `observables` - [Alert=NamedQuery=>Observable] List observables of the selected alerts
+             * `case` - [Alert=NamedQuery=>Case] Get case of the imported alert
+             * `organisation` - [Alert=NamedQuery=>Organisation] Get organisation of the selected alert
+             * `listObservable` - [INIT=NamedQuery=>Observable] List all visible observables
+             * `getObservable` - [INIT=GetQuery=>Observable] Select an observable
+             * `organisations` - [Observable=NamedQuery=>Organisation] List visible organisations of the selected observables
+             * `similar` - [Observable=NamedQuery=>Observable] List similar observables of the selected ones
+             * `case` - [Observable=NamedQuery=>Case] get case of the observable
+    GetQuery:
+      description: "Parameter to select an object by its ID or by its name"
+      allOf:
+        - $ref: '#/components/schemas/NamedQuery'
+        - type: object
+          required:
+            - idOrName
+          properties:
+            idOrName:
+              type: string
+    PageQuery:
+      description: "[Any=>] Paginate elements"
+      allOf:
+        - $ref: '#/components/schemas/NamedQuery'
+        - type: object
+          required:
+            - from
+            - to
+            - withStats
+          properties:
+            from:
+              type: integer
+            to:
+              type: integer
+            withStats:
+              type: boolean
+    FilterQuery:
+      description: "[Any=>Any] Apply filter on selected elements"
+      allOf:
+        - $ref: '#/components/schemas/NamedQuery'
+        - $ref: '#/components/schemas/Filter'
+    AnyValue:
+      oneOf:
+        - type: number
+        - type: boolean
+        - type: integer
+        - type: string
+        - type: object
+        - type: array
+          items:
+            $ref: '#/components/schemas/AnyValue'
+    FieldValue:
+      type: object
+      required:
+        - _field
+        - _value
+      properties:
+        _field:
+          $ref: '#/components/schemas/AnyProperties'
+        _value:
+          $ref: '#/components/schemas/AnyValue'
+    Filter:
+      oneOf:
+        - type: object
+          required:
+            - _and
+          properties:
+            _and:
+              type: array
+              items:
+                $ref: '#/components/schemas/Filter'
+        - type: object
+          required:
+            - _or
+          properties:
+            _or:
+              type: array
+              items:
+                $ref: '#/components/schemas/Filter'
+        - type: object
+          required:
+            - _not
+          properties:
+            _not:
+              $ref: '#/components/schemas/Filter'
+        - type: object
+          required:
+            - _any
+          properties:
+            _any:
+              $ref: '#/components/schemas/AnyValue'
+        - type: object
+          example:
+            _lt:
+              tlp: 2
+          required:
+            - _lt
+          properties:
+            _lt:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _gt
+          properties:
+            _gt:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _lte
+          properties:
+            _lte:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _gte
+          properties:
+            _gte:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _is
+          properties:
+            _is:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _startsWith
+          properties:
+            _startsWith:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _endsWith
+          properties:
+            _endsWith:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _like
+          properties:
+            _like:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _wildcard
+          properties:
+            _wildcard:
+              $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _contains
+          properties:
+            _contains:
+              type: string
+        - type: object
+          required:
+            - _id
+          properties:
+            _id:
+              type: string
+        - type: object
+          required:
+            - _between
+          properties:
+            _between:
+              type: object
+              required:
+                - _field
+                - _from
+                - _to
+              properties:
+                _field:
+                  type: string
+                _from:
+                  type: number
+                _to:
+                  type: number
+        - $ref: '#/components/schemas/FieldValue'
+        - type: object
+          required:
+            - _in
+          properties:
+            _in:
+              type: object
+              required:
+                - _field
+                - _values
+              properties:
+                _field:
+                  type: string
+                _values:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AnyValue'
+
