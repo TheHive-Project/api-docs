@@ -86,6 +86,8 @@ paths:
           $ref: '#/components/responses/AuthenticationError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
   /api/v1/organisation:
     post:
       tags:
@@ -239,7 +241,7 @@ paths:
     get:
       tags:
         - "Profile"
-      description: "List all user profiles"
+      summary: "List all user profiles"
       responses:
         '200':
           description: "List of all user profiles"
@@ -256,7 +258,7 @@ paths:
     post:
       tags:
         - "Profile"
-      description: "Create a new profile"
+      summary: "Create a new profile"
       requestBody:
         content:
           application/json:
@@ -280,6 +282,7 @@ paths:
     get:
       tags:
         - "Profile"
+      summary: "Get information of the given profile"
       parameters:
         - name: profile
           in: path
@@ -303,6 +306,7 @@ paths:
     patch:
       tags:
         - "Profile"
+      summary: "Update profile"
       parameters:
         - name: profile
           in: path
@@ -334,6 +338,7 @@ paths:
     delete:
       tags:
         - "Profile"
+      summary: "Remove the profile"
       parameters:
         - name: profile
           in: path
@@ -936,8 +941,10 @@ components:
           items:
             type: string
         editable:
+          description: "Indicates if this profile can be updated by an admin"
           type: boolean
         isAdmin:
+          description: "If true, this profile can be used only on admin organisation"
           type: boolean
     ProfileProperties:
       type: object
