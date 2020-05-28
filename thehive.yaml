@@ -231,6 +231,124 @@ paths:
       security:
         - Authenticated:
             - manageOrganisation
+  /api/v0/profile:
+    get:
+      tags:
+        - "Profile"
+      description: "List all user profiles"
+      responses:
+        '200':
+          description: "List of all user profiles"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OutputProfileV0'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+      security:
+        - Authenticated: []
+    post:
+      tags:
+        - "Profile"
+      description: "Create a new profile"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InputProfile'
+      responses:
+        '204':
+          description: "The profile has been created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputProfileV0'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+      security:
+        - Authenticated:
+            - manageProfile
+  /api/v0/profile/{profile}:
+    get:
+      tags:
+        - "Profile"
+      parameters:
+        - name: profile
+          in: path
+          description: "Id or name of the profile to retrieve"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "The profile"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputProfileV0'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+    patch:
+      tags:
+        - "Profile"
+      parameters:
+        - name: profile
+          in: path
+          description: "Id or name of the profile to update"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileProperties'
+      responses:
+        '200':
+          description: "The profile has been updated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputProfileV0'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageProfile
+    delete:
+      tags:
+        - "Profile"
+      parameters:
+        - name: profile
+          in: path
+          description: "Id or name of the profile to delete"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "The profile has been removed"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageProfile
 components:
   responses:
     AuthenticationError:
@@ -423,6 +541,64 @@ components:
           type: string
         description:
           type: string
+    InputProfile:
+      type: object
+      required:
+        - name
+        - permissions
+      properties:
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    OutputProfileV0:
+      type: object
+      required:
+        - _id
+        - id
+        - createdBy
+        - createdAt
+        - _type
+        - name
+        - permissions
+        - editable
+        - isAdmin
+      properties:
+        _id:
+          type: string
+        id:
+          type: string
+        createdBy:
+          type: string
+        updatedBy:
+          type: string
+        createdAt:
+          type: integer
+        updatedAt:
+          type: integer
+        _type:
+          type: string
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+        editable:
+          type: boolean
+        isAdmin:
+          type: boolean
+    ProfileProperties:
+      type: object
+      properties:
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
     OutputCustomFieldValue:
       type: object
       required:
