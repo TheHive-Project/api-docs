@@ -10,6 +10,10 @@ tags:
     description: "Query APIs"
   - name: "Organisation"
     description: "Organisation related APIs"
+  - name: "Profile"
+    description: "Profile related APIs"
+  - name: "User"
+    description: "User related APIs"
 paths:
   /api/v1/login:
     post:
@@ -349,6 +353,330 @@ paths:
       security:
         - Authenticated:
             - manageProfile
+  /api/v1/user:
+    post:
+      tags:
+        - "User"
+      summary: "Create a new user"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InputUser'
+      responses:
+        '204':
+          description: "The user has been created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputUser'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageUser
+  /api/v1/user/current:
+    get:
+      tags:
+        - "User"
+      summary: "Show information of the current user"
+      responses:
+        '200':
+          description: "Information of the current user"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputUser'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+      security:
+        - Authenticated: []
+  /api/v1/user/{user}:
+    get:
+      tags:
+        - "User"
+      summary: "Show information of the given user"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Information of the user"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputUser'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+    patch:
+      tags:
+        - "User"
+      summary: "Update information of the given user"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProperties'
+      responses:
+        '200':
+          description: "The user has been updated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputUser'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+          - manageUser
+    delete:
+      tags:
+        - "User"
+      summary: "Lock an user"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "The user has been locked"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageUser
+  /api/v1/user/{user}/force:
+    delete:
+      tags:
+        - "User"
+      summary: "Remove an user"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+        - name: organisation
+          in: query
+          description: "Id or name of the organisation from which the user will be removed. If not present use the current organisation"
+          required: false
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "The user has been removed"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageUser
+  /user/{user}/avatar:
+    get:
+      tags:
+        - "User"
+      summary: "Lock an user"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "The avatar of the user"
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+  /api/v1/user/{user}/password/set:
+    post:
+      tags:
+        - "User"
+      summary: "Set the user password"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  description: "The new password"
+                  type: string
+      responses:
+        '204':
+          description: "The password has been updated"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageUser
+  /api/v1/user/{user}/password/change:
+    post:
+      tags:
+        - "User"
+      summary: "Change the user password"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the current user"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - currentPassword
+              properties:
+                password:
+                  description: "The new password"
+                  type: string
+                currentPassword:
+                  description: "The current password"
+                  type: string
+      responses:
+        '204':
+          description: "The password has been updated"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+  /api/v1/user/{user}/key:
+    get:
+      tags:
+        - "User"
+      summary: "Get the user API key"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "The API key of the user"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+          - manageUser
+    delete:
+      tags:
+        - "User"
+      summary: "Remove the user API key"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "The API key has been removed"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+          - manageUser
+  /api/v1/user/{user}/key/renew:
+    post:
+      tags:
+        - "User"
+      summary: "Renew the user API key"
+      parameters:
+        - name: user
+          in: path
+          description: "Id or name of the user"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "The API key of the user"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+          - manageUser
 components:
   responses:
     AuthenticationError:
@@ -430,6 +758,26 @@ components:
         - $ref: '#/components/schemas/OutputTask'
         - $ref: '#/components/schemas/OutputLog'
         - $ref: '#/components/schemas/OutputAlert'
+    InputUser:
+      type: object
+      required:
+        - login
+        - name
+        - profile
+      properties:
+        login:
+          type: string
+        name:
+          type: string
+        password:
+          type: string
+        profile:
+          type: string
+        organisation:
+          type: string
+        avatar:
+          type: string
+          format: binary
     OutputUser:
       allOf:
         - $ref: '#/components/schemas/Entity'
@@ -485,6 +833,7 @@ components:
           type: boolean
         avatar:
           type: string
+          format: binary
     InputOrganisation:
       type: object
       required:
