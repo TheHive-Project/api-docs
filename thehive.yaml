@@ -6,6 +6,10 @@ info:
 tags:
   - name: "Authentication"
     description: "Authentication related APIs"
+  - name: "Query"
+    description: "Query APIs"
+  - name: "Organisation"
+    description: "Organisation related APIs"
 paths:
   /api/v1/login:
     post:
@@ -27,11 +31,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutputUser'
         '401':
-          description: "Authentication fails"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericError'
+          $ref: '#/components/responses/AuthenticationError'
         '402':
           description: "Multi-factor code is required"
           content:
@@ -40,6 +40,8 @@ paths:
                 $ref: '#/components/schemas/GenericError'
   /api/v1/query:
     post:
+      tags:
+        - "Query"
       requestBody:
         required: true
         content:
@@ -59,7 +61,196 @@ paths:
                   - type: array
                     items:
                       $ref: '#/components/schemas/AnyOutputObject'
+      security:
+        - Authenticated: []
+  /api/v0/organisation:
+    get:
+      tags:
+        - "Organisation"
+      summary: "List visible organisations"
+      description: "This API include, for each organisation, the linked organisation"
+      responses:
+        '200':
+          description: "List of organisations"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OutputOrganisationWithLinksV0'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/v1/organisation:
+    post:
+      tags:
+        - "Organisation"
+      summary: "Create an organisation"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InputOrganisation'
+      responses:
+        '201':
+          description: "The organisation is created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputOrganisation'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+      security:
+        - Authenticated:
+            - manageOrganisation
+  /api/v1/organisation/{org}:
+    patch:
+      tags:
+        - "Organisation"
+      summary: "Update organisation information"
+      parameters:
+        - name: org
+          in: path
+          description: "Id or name of the organisation to update"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganisationProperties'
+      responses:
+        '204':
+          description: "The organisation has been updated"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageOrganisation
+  /api/v0/organisation/{org1}/link/{org2}:
+    put:
+      tags:
+        - "Organisation"
+      summary: "Link two organisations"
+      parameters:
+        - name: org1
+          in: path
+          description: "Id or name of the first organisation"
+          required: true
+          schema:
+            type: string
+        - name: org2
+          in: path
+          description: "Id or name of the second organisation"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "The organisations have been linked"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageOrganisation
+    delete:
+      tags:
+        - "Organisation"
+      summary: "Remove link between two organisations"
+      parameters:
+        - name: org1
+          in: path
+          description: "Id or name of the first organisation"
+          required: true
+          schema:
+            type: string
+        - name: org2
+          in: path
+          description: "Id or name of the second organisation"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "The link between organisations had been removed"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageOrganisation
+  /api/v0/organisation/{org}/links:
+    put:
+      tags:
+        - "Organisation"
+      summary: "Link an organisation with several others"
+      parameters:
+        - name: org
+          in: path
+          description: "Id or name of the organisation to link"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - organisations
+              properties:
+                organisations:
+                  description: "List of organisation to link with"
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '204':
+          description: "The organisations have been linked"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated:
+            - manageOrganisation
 components:
+  responses:
+    AuthenticationError:
+      description: "User is not authenticated"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericError'
+    AuthorizationError:
+      description: "The current user is not permitted to do this operation"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericError'
+    NotFoundError:
+      description: "The requested element is not found or the permission of the user is insufficient"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericError'
   schemas:
     Entity:
       type: object
@@ -121,9 +312,6 @@ components:
         - $ref: '#/components/schemas/OutputTask'
         - $ref: '#/components/schemas/OutputLog'
         - $ref: '#/components/schemas/OutputAlert'
-    AnyProperties:
-      oneOf:
-        - $ref: '#/components/schemas/UserProperties'
     OutputUser:
       allOf:
         - $ref: '#/components/schemas/Entity'
@@ -169,24 +357,72 @@ components:
                   role:
                     type: string
     UserProperties:
-      type: string
-      enum:
-        - login
+      type: object
+      properties:
+        login:
+          type: string
+        name:
+          type: string
+        locked:
+          type: boolean
+        avatar:
+          type: string
+    InputOrganisation:
+      type: object
+      required:
         - name
-        - locked
-        - avatar
+        - description
+      properties:
+        name:
+          type: string
+        description:
+          type: string
     OutputOrganisation:
       allOf:
         - $ref: '#/components/schemas/Entity'
-        - type: object
-          required:
-            - name
-            - description
-          properties:
-            name:
-              type: string
-            description:
-              type: string
+        - $ref: '#/components/schemas/InputOrganisation'
+    OutputOrganisationWithLinksV0:
+      description: "This object is used by version 0 of API. It is deprecated"
+      type: object
+      required:
+        - name
+        - description
+        - _id
+        - id
+        - createdAt
+        - createdBy
+        - _type
+        - links
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        _id:
+          type: string
+        id:
+          type: string
+        createdAt:
+          type: integer
+        createdBy:
+          type: string
+        updatedAt:
+          type: integer
+        updatedBy:
+          type: string
+        _type:
+          type: string
+        links:
+          type: array
+          items:
+            type: string
+    OrganisationProperties:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
     OutputCustomFieldValue:
       type: object
       required:
@@ -557,7 +793,7 @@ components:
         - _value
       properties:
         _field:
-          $ref: '#/components/schemas/AnyProperties'
+          type: string
         _value:
           $ref: '#/components/schemas/AnyValue'
     Filter:
@@ -693,4 +929,9 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/AnyValue'
+  securitySchemes:
+    Authenticated:
+      type: http
+      scheme: bearer
+
 
