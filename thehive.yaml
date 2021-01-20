@@ -1439,7 +1439,7 @@ components:
           type: integer
         caseId:
           type: string
-         patternId:
+        patternId:
           type: string
     OutputProcedure:
       allOf:
