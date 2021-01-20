@@ -727,6 +727,26 @@ paths:
           $ref: '#/components/responses/NotFoundError'
       security:
         - Authenticated: []
+    delete:
+      tags: 
+        - "Pattern"
+      summary: "Delete the given pattern"
+      parameters:
+        - name: pattern
+          in: path
+          description: "Id or name of the pattern"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "Pattern deleted"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
   /api/v1/pattern/case/{case}:
     get:
       tags: 
@@ -748,27 +768,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/OutputPattern'
-        '401':
-          $ref: '#/components/responses/AuthenticationError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-      security:
-        - Authenticated: []
-  /api/v1/pattern/{pattern}:
-    delete:
-      tags: 
-        - "Pattern"
-      summary: "Delete the given pattern"
-      parameters:
-        - name: pattern
-          in: path
-          description: "Id or name of the pattern"
-          required: true
-          schema:
-            type: string
-      responses:
-        '204':
-          description: "Pattern deleted"
         '401':
           $ref: '#/components/responses/AuthenticationError'
         '404':
@@ -825,7 +824,6 @@ paths:
           $ref: '#/components/responses/NotFoundError'
       security:
         - Authenticated: []
-  /api/v1/procedure/{procedure}:
     delete:
       tags: 
         - "Procedure"
