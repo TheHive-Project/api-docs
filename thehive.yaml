@@ -687,6 +687,12 @@ paths:
       tags: 
         - "Pattern"
       summary: "Import MITRE ATT&CK patterns with a .json file"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              format: binary
       responses:
         '201':
           description: "ATT&CK patterns imported"
