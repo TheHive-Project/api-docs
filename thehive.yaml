@@ -682,6 +682,191 @@ paths:
       security:
         - Authenticated:
           - manageUser
+  /api/v1/pattern/import/attack:
+    post:
+      tags: 
+        - "Pattern"
+      summary: "Import MITRE ATT&CK patterns with a .json file"
+      responses:
+        '201':
+          description: "ATT&CK patterns imported"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ImportedPattern'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+      security:
+        - Authenticated: []
+  /api/v1/pattern/{pattern}:
+    get:
+      tags: 
+        - "Pattern"
+      summary: "Show information of the given pattern"
+      parameters:
+        - name: pattern
+          in: path
+          description: "Id or patternId of the pattern"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Information of the given pattern"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputPattern'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+  /api/v1/pattern/case/{case}:
+    get:
+      tags: 
+        - "Pattern"
+      summary: "Show patterns of the given case"
+      parameters:
+        - name: case
+          in: path
+          description: "Id or name of the case"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Patterns of the given case"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OutputPattern'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+  /api/v1/pattern/{pattern}:
+    delete:
+      tags: 
+        - "Pattern"
+      summary: "Delete the given pattern"
+      parameters:
+        - name: pattern
+          in: path
+          description: "Id or name of the pattern"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "Pattern deleted"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+  /api/v1/pattern/{pattern}:
+    delete:
+      tags: 
+        - "Pattern"
+      summary: "Delete the given pattern"
+      parameters:
+        - name: pattern
+          in: path
+          description: "Id or name of the pattern"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "Pattern deleted"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+  /api/v1/procedure:
+    post:
+      tags: 
+        - "Procedure"
+      summary: "Create a procedure"
+      requestBody:
+        description: "Procedure to create"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InputProcedure'
+      responses:
+        '201':
+          description: "Created procedure"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputProcedure'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+  /api/v1/procedure/{procedure}:
+    get:
+      tags: 
+        - "Procedure"
+      summary: "Show information of the given procedure"
+      parameters:
+        - name: procedure
+          in: path
+          description: "Id of the procedure"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Information of the given procedure"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputProcedure'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
+  /api/v1/procedure/{procedure}:
+    delete:
+      tags: 
+        - "Procedure"
+      summary: "Delete the given procedure"
+      parameters:
+        - name: procedure
+          in: path
+          description: "Id of the procedure"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "Procedure deleted"
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - Authenticated: []
 components:
   responses:
     AuthenticationError:
@@ -1210,6 +1395,89 @@ components:
               items:
                 $ref: '#/components/schemas/OutputCustomFieldValue'
             caseTemplate:
+              type: string
+    ImportedPattern:
+      type: object
+        required:
+          - status
+        properties:
+          status:
+            type: string
+          message:
+            type: string
+          mitreId:
+            type: string
+          patternName:
+            type: string
+    OutputPattern:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - patternId
+            - name
+            - tactics
+            - url
+            - patternType
+            - platforms
+            - dataSources
+          properties: 
+            patternId:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            tactics:
+              type: array
+              items:
+                type: string
+            url:
+              type: string
+            patterntype:
+              type: string
+            platforms:
+              type: array
+              items:
+                type: string
+            dataSources:
+              type: array
+              items:
+                type: string
+            version:
+              type: string
+            parent: 
+              type: string
+    InputProcedure:
+      type: object
+        required:
+          - description
+          - occurence
+          - caseId
+          - patternId
+        properties: 
+          description:
+            type: string
+          occurence:
+            type: integer
+          caseId:
+            type: string
+          patternId:
+            type: string
+    OutputProcedure:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - description
+            - occurence
+            - patternId
+          properties: 
+            description:
+              type: string
+            occurence:
+              type: integer
+            patternId:
               type: string
     Query:
       oneOf:
