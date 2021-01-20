@@ -1375,17 +1375,17 @@ components:
               type: string
     ImportedPattern:
       type: object
-        required:
-          - status
-        properties:
-          status:
-            type: string
-          message:
-            type: string
-          mitreId:
-            type: string
-          patternName:
-            type: string
+      required:
+        - status
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        mitreId:
+          type: string
+        patternName:
+          type: string
     OutputPattern:
       allOf:
         - $ref: '#/components/schemas/Entity'
@@ -1427,20 +1427,20 @@ components:
               type: string
     InputProcedure:
       type: object
-        required:
-          - description
-          - occurence
-          - caseId
-          - patternId
-        properties: 
-          description:
-            type: string
-          occurence:
-            type: integer
-          caseId:
-            type: string
-          patternId:
-            type: string
+      required:
+        - description
+        - occurence
+        - caseId
+        - patternId
+      properties: 
+        description:
+          type: string
+        occurence:
+          type: integer
+        caseId:
+          type: string
+         patternId:
+          type: string
     OutputProcedure:
       allOf:
         - $ref: '#/components/schemas/Entity'
